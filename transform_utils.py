@@ -7,6 +7,7 @@ NOTE: convention for quaternions is (x, y, z, w)
 import math
 from numba import njit
 import numpy as np
+import torch
 from scipy.spatial.transform import Rotation as R
 
 PI = np.pi
@@ -176,6 +177,9 @@ def quat_conjugate(quaternion):
     Returns:
         np.array: (x,y,z,w) quaternion conjugate
     """
+    # Convert to numpy array if input is not that
+    if isinstance(quaternion, torch.Tensor):
+        quaternion = quaternion.cpu().numpy()
     return np.array(
         (-quaternion[0], -quaternion[1], -quaternion[2], quaternion[3]),
         dtype=quaternion.dtype,
@@ -455,6 +459,8 @@ def pose2mat(pose):
     Returns:
         np.array: 4x4 homogeneous matrix
     """
+    if any([isinstance(pose[i], torch.Tensor) for i in range(len(pose))]):
+        pose = tuple(pose[i].cpu().numpy() for i in range(len(pose)))
     homo_pose_mat = np.zeros((4, 4), dtype=pose[0].dtype)
     homo_pose_mat[:3, :3] = quat2mat(pose[1])
     homo_pose_mat[:3, 3] = np.array(pose[0], dtype=pose[0].dtype)

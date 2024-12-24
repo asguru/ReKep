@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import time
 import copy
 from scipy.optimize import dual_annealing, minimize
@@ -57,6 +58,8 @@ def objective(opt_vars,
     debug_dict['ik_cost'] = ik_cost
     cost += ik_cost
     if ik_result.success:
+        if isinstance(reset_joint_pos, torch.Tensor):
+            reset_joint_pos = reset_joint_pos.cpu().numpy()
         reset_reg = np.linalg.norm(ik_result.cspace_position[:-1] - reset_joint_pos[:-1])
         reset_reg = np.clip(reset_reg, 0.0, 3.0)
     else:
